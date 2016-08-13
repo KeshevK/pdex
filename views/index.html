@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../style/dropzone.css">
+  <!---<link rel="stylesheet" href="../style/ghost.css">--->
+    <link rel="stylesheet" href="../font-awesome-4.6.3/css/font-awesome.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="../bootstrap/js/bootstrap.min.js"></script>
+  <script src="../scripts/dropzone.js"></script>
+  <script src="../scripts/UUID.js"></script>
+  <link rel="stylesheet" type="text/css" href="../semantic/dist/semantic.min.css">
+<script src="../semantic/dist/semantic.min.js"></script>
+
+  <script> Dropzone.autoDiscover = false;	</script> 
+</head>
+<body>
+<div id="navbar" class="ui fixed inverted main menu">
+  <a class="item" id="menuS" onclick="showSide()">
+    <i class="browser icon"></i>
+    Menu
+  </a>
+</div>
+<div class="ui left demo vertical inverted sidebar labeled icon menu">
+  <a class="item">
+    <i class="home icon"></i>
+    Home
+  </a>
+  <a class="item">
+    <i class="block layout icon"></i>
+    Topics
+  </a>
+  <a class="item">
+    <i class="smile icon"></i>
+    Friends
+  </a>
+</div>
+<div class="container-fluid">
+  <h1>My First Bootstrap Page</h1>
+  <p>Thiadas is some text.</p> 
+  <p>This is some text.</p>
+  <center><form action="/upload" class="dropzone needsclick dz-clickable" id="demo-upload">
+
+  <div class="dz-message needsclick">
+    Drop files here or click to upload.<br>
+    <span class="note needsclick">(This is just a demo dropzone. Selected files are <strong>not</strong> actually uploaded.)</span>
+  </div>
+
+</form></center>
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  <p>This is some text.</p> 
+  
+</div>
+
+<div class="container-fluid">
+<canvas id="image" width="450" height="450"> </canvas>
+<div id="bottom"></div>
+</div>
+</body>
+<script>
+showSide = function() {$('.ui.labeled.icon.sidebar')
+  .sidebar('toggle');};
+showSide();
+setTimeout(showSide,2000)
+
+$(function() {
+  // Now that the DOM is fully loaded, create the dropzone, and setup the
+  // event listeners
+  var socket = new WebSocket("ws://localhost:8080", "protocolOne");
+  socket.onopen = function (event) {
+		socket.send("Connected"); 
+		};
+  socket.onmessage = function (evt) {
+		if (evt.data instanceof Blob && evt.data.size > 0 ) {
+			var length = evt.data.byteLength;
+			var blob = evt.data;
+			console.log(blob);
+			//var blob = new Blob([evt.data],{type:'image/png'});
+			var url = URL.createObjectURL(blob);
+			var image = document.getElementById("image");
+			var img = new Image();
+			img.onload = function(){
+				var ctx = image.getContext("2d");
+				ctx.drawImage(img, 0, 0);
+			}
+			img.src = url;
+			document.getElementById( 'bottom' ).scrollIntoView();
+
+		};
+		};
+ /* var ctx = document.getElementById('canvas').getContext('2d');
+  socket.on("image", function(info) {
+  if (info.image) {
+    var img = new Image();
+	img.src = 'data:image/jpeg;base64,' + image.buffer;
+    ctx.drawImage(img, 0, 0);
+	}
+  });*/
+  console.log(myDropzone)
+  var id = UUID.generate();
+  var myDropzone = new Dropzone("#demo-upload");
+  myDropzone.options.maxFiles = 1;
+  console.log(myDropzone);
+  myDropzone.on('sending', function(file, xhr, formData){
+            formData.append('id', id);
+			console.log("here");
+        });
+  myDropzone.on("addedfile", function(file) {
+	console.log(file);
+	socket.send(id);
+	this.options.thumbnailWidth = file.width;
+	this.options.thumbnailHeight = file.height;
+
+  });
+  myDropzone.on("maxfilesexceeded", function(file) {
+            this.removeAllFiles();
+			id = UUID.generate();
+			socket.send(id);
+            this.addFile(file);
+      }); 
+  })
+ </script>
+ 
+
+</html>
